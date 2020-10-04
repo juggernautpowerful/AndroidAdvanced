@@ -15,29 +15,37 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.nechaev.loftcoin.BaseComponent;
 import com.nechaev.loftcoin.R;
-import com.nechaev.loftcoin.data.CurrencyRepository;
-import com.nechaev.loftcoin.data.CurrencyRepositoryImpl;
+
 import com.nechaev.loftcoin.databinding.FragmentRatesBinding;
 import com.nechaev.loftcoin.utils.PriceFormatter;
 
-import timber.log.Timber;
+import javax.inject.Inject;
+
 
 public class RatesFragment extends Fragment {
+
+    private final RatesComponent component;
+
     private FragmentRatesBinding binding;
 
     private RatesAdapter adapter;
 
     private RatesViewModel viewModel;
 
-    private CurrencyRepository currencyRepo;
+    @Inject
+    public RatesFragment(BaseComponent baseComponent) {
+        component = DaggerRatesComponent.builder()
+                .baseComponent(baseComponent)
+                .build();
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewModel = new ViewModelProvider(this).get(RatesViewModel.class);
-        adapter = new RatesAdapter(new PriceFormatter());
-        currencyRepo = new CurrencyRepositoryImpl(requireContext());
+        viewModel = new ViewModelProvider(this,  component.viewModelFactory()).get(RatesViewModel.class);
+        adapter = component.ratesAdapter();
     }
 
     @Nullable
@@ -54,11 +62,9 @@ public class RatesFragment extends Fragment {
         binding.recycler.setLayoutManager(new LinearLayoutManager(view.getContext()));
         binding.recycler.swapAdapter(adapter, false);
         binding.recycler.setHasFixedSize(true);
+        binding.refresher.setOnRefreshListener(viewModel::refresh);
         viewModel.coins().observe(getViewLifecycleOwner(), adapter::submitList);
         viewModel.isRefreshing().observe(getViewLifecycleOwner(), binding.refresher::setRefreshing);
-        currencyRepo.currency().observe(getViewLifecycleOwner(), (currency) -> {
-            Timber.d("%s", currency);
-        });
     }
 
     @Override

@@ -6,5 +6,5 @@ import java.util.List;
 
 @AutoValue
 public abstract class Listings  {
-    abstract List<AutoValue_Coin> data();
+    abstract List<AutoValue_CmcCoin> data();
 }

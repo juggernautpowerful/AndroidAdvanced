@@ -15,14 +15,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CurrencyRepositoryImpl implements CurrencyRepository {
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
+class CurrencyRepositoryImpl implements CurrencyRepository {
     private static final String KEY_CURRENCY = "currency";
 
     private final Map<String, Currency> availableCurrencies = new HashMap<>();
 
     private SharedPreferences prefs;
 
-    public CurrencyRepositoryImpl(@NonNull Context context) {
+    @Inject
+    CurrencyRepositoryImpl(@NonNull Context context) {
         this.prefs = PreferenceManager.getDefaultSharedPreferences(context);
         availableCurrencies.put("USD", Currency.create("$", "USD", context.getString(R.string.usd)));
         availableCurrencies.put("EUR", Currency.create("E", "EUR", context.getString(R.string.eur)));

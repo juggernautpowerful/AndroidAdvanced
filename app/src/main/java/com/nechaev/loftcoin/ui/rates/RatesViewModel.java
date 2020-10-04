@@ -3,34 +3,55 @@ package com.nechaev.loftcoin.ui.rates;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
-import com.nechaev.loftcoin.data.CmcCoinsRepository;
 import com.nechaev.loftcoin.data.Coin;
 import com.nechaev.loftcoin.data.CoinsRepository;
+import com.nechaev.loftcoin.data.CurrencyRepository;
+import com.nechaev.loftcoin.data.SortBy;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.inject.Inject;
 
 public class RatesViewModel extends ViewModel {
 
-    private final MutableLiveData<List<Coin>> coins = new MutableLiveData<>();
-
     private final MutableLiveData<Boolean> isRefreshing = new MutableLiveData<>();
 
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
-
-    private final CoinsRepository repo;
+    private final MutableLiveData<AtomicBoolean> forceRefresh = new MutableLiveData<>(new AtomicBoolean(true));
 
     private Future<?> future;
 
-    public RatesViewModel() {
-        repo = new CmcCoinsRepository();
-        refresh();
+   private final MutableLiveData<SortBy> sortBy = new MutableLiveData<>(SortBy.RANK);
+
+   private final LiveData<List<Coin>> coins;
+
+    private int sortingIndex = 1;
+
+    @Inject
+    public RatesViewModel(CoinsRepository coinsRepository, CurrencyRepository currencyRepository) {
+
+        final LiveData<CoinsRepository.Query> query = Transformations.switchMap(forceRefresh, (r) -> {
+            return Transformations.switchMap(currencyRepository.currency(), (c) -> {
+                r.set(true);
+                isRefreshing.postValue(true);
+                return Transformations.map(sortBy, (s) -> {
+                    return CoinsRepository.Query.builder()
+                            .currency(c.code())
+                            .forceUpdate(r.getAndSet(false))
+                            .sortBy(s)
+                            .build();
+                });
+            });
+        });
+        final LiveData<List<Coin>> coins = Transformations.switchMap(query, coinsRepository::listings);
+        this.coins = Transformations.map(coins, (c) -> {
+            isRefreshing.postValue(false);
+            return c;
+        });
     }
 
     @NonNull
@@ -44,15 +65,7 @@ public class RatesViewModel extends ViewModel {
     }
 
     final void refresh() {
-        isRefreshing.postValue(true);
-        future = executor.submit(() -> {
-            try {
-                coins.postValue(new ArrayList<>(repo.listings("USD")));
-                isRefreshing.postValue(false);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+        forceRefresh.postValue(new AtomicBoolean(true));
     }
 
     @Override
@@ -60,5 +73,9 @@ public class RatesViewModel extends ViewModel {
         if (future != null) {
             future.cancel(true);
         }
+    }
+
+    void switchSortingOrder() {
+        sortBy.postValue(SortBy.values()[sortingIndex++ % SortBy.values().length]);
     }
 }

@@ -15,8 +15,8 @@
     <string name="rates">Курс</string>
     <string name="converter">Конвертер</string>
     <string name="usd">Доллар</string>
-    <string name="eur">" Thj"</string>
+    <string name="eur">"Евро"</string>
     <string name="rub">Рубль</string>
-    <string name="choose_currency">ыберите алюту</string>
-    <string name="sort">ортирока</string>
+    <string name="choose_currency">Выберите валюту</string>
+    <string name="sort">Сортирока</string>
 </resources>

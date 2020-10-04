@@ -17,16 +17,22 @@ import com.nechaev.loftcoin.data.Coin;
 import com.nechaev.loftcoin.databinding.LiRateBinding;
 import com.nechaev.loftcoin.utils.Formatter;
 import com.nechaev.loftcoin.utils.OutlineCircle;
+import com.nechaev.loftcoin.utils.PercentFormatter;
+import com.nechaev.loftcoin.utils.PriceFormatter;
 import com.squareup.picasso.Picasso;
 
-import java.util.Locale;
+import java.util.List;
 import java.util.Objects;
 
-import static java.util.Locale.*;
+import javax.inject.Inject;
+
+import static java.util.Locale.US;
 
 class RatesAdapter extends ListAdapter<Coin, RatesAdapter.ViewHolder> {
 
-    private final Formatter<Double> priceFormatter;
+    private final PriceFormatter  priceFormatter;
+
+    private final PercentFormatter percentFormatter;
 
     private LayoutInflater inflater;
 
@@ -34,7 +40,8 @@ class RatesAdapter extends ListAdapter<Coin, RatesAdapter.ViewHolder> {
 
     private int colorPositive = Color.GREEN;
 
-    RatesAdapter(Formatter<Double> priceFormatter) {
+    @Inject
+    RatesAdapter(PriceFormatter priceFormatter, PercentFormatter percentFormatter) {
         super(new DiffUtil.ItemCallback<Coin>() {
             @Override
             public boolean areItemsTheSame(@NonNull Coin oldItem, @NonNull Coin newItem) {
@@ -45,8 +52,14 @@ class RatesAdapter extends ListAdapter<Coin, RatesAdapter.ViewHolder> {
             public boolean areContentsTheSame(@NonNull Coin oldItem, @NonNull Coin newItem) {
                 return Objects.equals(oldItem, newItem);
             }
+
+            @Override
+            public Object getChangePayload(@NonNull Coin oldItem, @NonNull Coin newItem) {
+                return newItem;
+            }
         });
         this.priceFormatter = priceFormatter;
+        this.percentFormatter = percentFormatter;
         setHasStableIds(true);
     }
 
@@ -65,7 +78,7 @@ class RatesAdapter extends ListAdapter<Coin, RatesAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         final Coin coin = getItem(position);
         holder.binding.symbol.setText(coin.symbol());
-        holder.binding.price.setText(priceFormatter.format(coin.price()));
+        holder.binding.price.setText(priceFormatter.format(coin.currencyCode(), coin.price()));
         holder.binding.change.setText(String.format(US, "%.2f%%", coin.change24h()));
         if (coin.change24h() > 0) {
             holder.binding.change.setTextColor(colorPositive);
@@ -75,6 +88,17 @@ class RatesAdapter extends ListAdapter<Coin, RatesAdapter.ViewHolder> {
         Picasso.get()
                 .load(BuildConfig.IMG_ENDPOINT + coin.id() + ".png")
                 .into(holder.binding.logo);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
+        if (payloads.isEmpty()) {
+            onBindViewHolder(holder, position);
+        } else {
+            final Coin coin = (Coin) payloads.get(0);
+            holder.binding.price.setText(priceFormatter.format(coin.currencyCode(), coin.price()));
+            holder.binding.change.setText(percentFormatter.format(coin.change24h()));
+        }
     }
 
     @Override

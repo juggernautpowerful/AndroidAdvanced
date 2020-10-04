@@ -80,6 +80,9 @@ public class RatesFragment extends Fragment {
                     .findNavController(this)
                     .navigate(R.id.currency_dialog);
             return true;
+        }else if (R.id.sort_dialog == item.getItemId()) {
+            viewModel.switchSortingOrder();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }

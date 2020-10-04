@@ -15,12 +15,10 @@ import com.nechaev.loftcoin.BuildConfig;
 import com.nechaev.loftcoin.R;
 import com.nechaev.loftcoin.data.Coin;
 import com.nechaev.loftcoin.databinding.LiRateBinding;
-import com.nechaev.loftcoin.utils.Formatter;
 import com.nechaev.loftcoin.utils.ImageLoader;
 import com.nechaev.loftcoin.utils.OutlineCircle;
 import com.nechaev.loftcoin.utils.PercentFormatter;
 import com.nechaev.loftcoin.utils.PriceFormatter;
-import com.squareup.picasso.Picasso;
 
 import java.util.List;
 import java.util.Objects;
@@ -89,7 +87,7 @@ class RatesAdapter extends ListAdapter<Coin, RatesAdapter.ViewHolder> {
         } else {
             holder.binding.change.setTextColor(colorNegative);
         }
-        Picasso.get()
+        imageLoader
                 .load(BuildConfig.IMG_ENDPOINT + coin.id() + ".png")
                 .into(holder.binding.logo);
     }

@@ -56,7 +56,14 @@ public abstract class DataModule {
     @Provides
     static Retrofit retrofit(OkHttpClient httpClient, Moshi moshi){
         final Retrofit.Builder builder = new Retrofit.Builder();
-        builder.client(httpClient);
+        builder.client(httpClient.newBuilder()
+                .addInterceptor(chain -> {
+                    final Request request = chain.request();
+                    return chain.proceed(request.newBuilder()
+                            .addHeader(CmcApi.API_KEY, BuildConfig.API_KEY)
+                            .build());
+                })
+                .build());
         builder.baseUrl(BuildConfig.API_ENDPOINT);
         builder.addConverterFactory(MoshiConverterFactory.create(moshi));
         return builder.build();

@@ -4,6 +4,9 @@ import android.app.Application;
 import android.content.Context;
 import android.net.TrafficStats;
 
+import com.squareup.picasso.OkHttp3Downloader;
+import com.squareup.picasso.Picasso;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -12,6 +15,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import okhttp3.OkHttpClient;
 
 @Module
 public abstract class AppModule {
@@ -34,5 +38,14 @@ public abstract class AppModule {
             thread.setPriority(Thread.MIN_PRIORITY);
             return thread;
         });
+    }
+
+    @Provides
+    @Singleton
+    static Picasso picasso(Context context, OkHttpClient httpClient, ExecutorService executor) {
+        return new Picasso.Builder(context)
+                .downloader(new OkHttp3Downloader(httpClient))
+                .executor(executor)
+                .build();
     }
 }

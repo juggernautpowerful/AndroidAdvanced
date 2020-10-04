@@ -16,6 +16,7 @@ import com.nechaev.loftcoin.R;
 import com.nechaev.loftcoin.data.Coin;
 import com.nechaev.loftcoin.databinding.LiRateBinding;
 import com.nechaev.loftcoin.utils.Formatter;
+import com.nechaev.loftcoin.utils.ImageLoader;
 import com.nechaev.loftcoin.utils.OutlineCircle;
 import com.nechaev.loftcoin.utils.PercentFormatter;
 import com.nechaev.loftcoin.utils.PriceFormatter;
@@ -34,6 +35,8 @@ class RatesAdapter extends ListAdapter<Coin, RatesAdapter.ViewHolder> {
 
     private final PercentFormatter percentFormatter;
 
+    private final ImageLoader imageLoader;
+
     private LayoutInflater inflater;
 
     private int colorNegative = Color.RED;
@@ -41,7 +44,7 @@ class RatesAdapter extends ListAdapter<Coin, RatesAdapter.ViewHolder> {
     private int colorPositive = Color.GREEN;
 
     @Inject
-    RatesAdapter(PriceFormatter priceFormatter, PercentFormatter percentFormatter) {
+    RatesAdapter(PriceFormatter priceFormatter, PercentFormatter percentFormatter, ImageLoader imageLoader) {
         super(new DiffUtil.ItemCallback<Coin>() {
             @Override
             public boolean areItemsTheSame(@NonNull Coin oldItem, @NonNull Coin newItem) {
@@ -60,6 +63,7 @@ class RatesAdapter extends ListAdapter<Coin, RatesAdapter.ViewHolder> {
         });
         this.priceFormatter = priceFormatter;
         this.percentFormatter = percentFormatter;
+        this.imageLoader = imageLoader;
         setHasStableIds(true);
     }
 
